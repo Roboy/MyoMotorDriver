@@ -10,7 +10,7 @@
 #include <p33FJ128MC802.h>
 #include "can.h"
 
-#define NUMBER_OF_CONTROL_INPUT_WORDS 4
+#define NUMBER_OF_CONTROL_INPUT_WORDS 3
 #define START_OF_FRAME_MASK 0x8000
 #define START_OF_CONTROL_MESSAGE 0x8000
 #define START_OF_DIAGNOSIC_MESSAGE 0x8001
@@ -43,18 +43,15 @@ typedef struct struct_SPICOMMUNICATIONSTREAM_CONTROL {
             unsigned startOfFrame : 16; //input
             int   pwmRef : 16; //in
             unsigned controlFlags1 : 16; //in
-            unsigned controlFlags2 :16; //in
             long actualPosition : 32; //out
             int actualVelocity : 16; //out
             int actualCurrent : 16; //out
-            int springDisplacement : 16; //out
+            long springDisplacement : 32; //out
             int sensor1 : 16; //out
-            int sensor2 : 16; //out
-            unsigned errorflags : 16; //out
         };
 
 
-        unsigned int dataStream[12];
+        unsigned int dataStream[10];
 
 
 
@@ -91,6 +88,11 @@ int getSPIControlFlags(unsigned int * controlFlags);
  */
 void resetSPI();
 
+
+/*! /brief enables SPI interrupt
+ *
+ */
+void enableSPIInterrupt();
 #endif	/* SPIFUNCTIONS_H */
 
 

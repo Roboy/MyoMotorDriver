@@ -3,10 +3,21 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
+            <file>file:/home/letrend/MPLABXProjects/motorDriver.X/src/adc.c</file>
             <file>file:/home/letrend/MPLABXProjects/motorDriver.X/src/main.c</file>
+            <file>file:/home/letrend/MPLABXProjects/motorDriver.X/src/DEEEmulation.c</file>
             <file>file:/home/letrend/MPLABXProjects/motorDriver.X/src/spiFunctions.c</file>
             <file>file:/home/letrend/MPLABXProjects/motorDriver.X/src/pwm.c</file>
+            <file>file:/home/letrend/MPLABXProjects/motorDriver.X/src/p33FJ128MC802.h</file>
+            <file>file:/home/letrend/MPLABXProjects/motorDriver.X/src/dma.c</file>
+            <file>file:/home/letrend/MPLABXProjects/motorDriver.X/src/initIO.h</file>
             <file>file:/opt/microchip/xc16/v1.36/support/peripheral_30F_24H_33F/delay.h</file>
+            <file>file:/home/letrend/MPLABXProjects/motorDriver.X/src/motorControl.h</file>
+            <file>file:/home/letrend/MPLABXProjects/motorDriver.X/src/motorControl.c</file>
+            <file>file:/home/letrend/MPLABXProjects/motorDriver.X/src/initIO.c</file>
+            <file>file:/home/letrend/MPLABXProjects/motorDriver.X/src/qei.c</file>
+            <file>file:/home/letrend/MPLABXProjects/motorDriver.X/src/qei.h</file>
+            <file>file:/home/letrend/MPLABXProjects/motorDriver.X/src/can.c</file>
         </group>
     </open-files>
 </project-private>

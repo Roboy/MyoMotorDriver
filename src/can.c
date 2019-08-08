@@ -16,6 +16,16 @@
 #include "initIO.h"
 //****************************************************************INITIALISE CAN************************
 
+void waitForCanMessageTransmitted()
+{
+    C1INTF;
+    //U2TXREG= (C1INTF>>8)&0x00FF; //_RERRCNT;//_TERRCNT; //transmitt the error count on the UART
+    while ((C1TR01CONbits.TXREQ1)&&(C1INTFbits.TXBP==0)&&(C1INTFbits.TXBO==0)&&(C1INTFbits.RXBP==0))
+    {
+        //U2TXREG= (C1INTF>>8)&0x00FF; //_TERRCNT; //transmitt the error count on the UART
+    }
+}
+
 void initCAN(void)
 {
 
@@ -94,9 +104,11 @@ void initCAN(void)
     /////////////////////////////////////////////////////////////////////////////////////////////////
     // C1INTE = 0x0002;
     C1INTFbits.RBIF = 0; // clear Rx interrupt flag bit if set
+
     C1INTEbits.RBIE = 0; // Rx buffer interrupt disabled
 
     IFS2bits.C1RXIF = 0; // clear global Rx interrupt flag
+    IFS4bits.C1TXIF = 0; // clear global Tx interrupt flag
     IFS2bits.C1IF = 0; // clear global overall interrupt flag
     IEC2bits.C1RXIE = 0; // disable CAN Rx interrupts
     IEC2bits.C1IE = 0; // disable CAN interrupts (all?)
@@ -132,6 +144,17 @@ void __attribute__((__interrupt__, auto_psv)) _C1RxRdyInterrupt(void)
     //LED1=~LED1;
    
 }
+
+/*
+void __attribute__((__interrupt__, auto_psv)) _C1TxRdyInterrupt(void)
+{
+    IFS4bits.C1TXIF = 0; // clear global Tx interrupt flag
+    IFS2bits.C1IF = 0; // clear global overall interrupt flag
+    //LED1=~LED1;
+
+}
+ * */
+
 
 /*
  * transmits additional internal states, independent of the control mode
@@ -201,7 +224,7 @@ void CANTransmitString(unsigned int u16SID, char * cString)
                 //one message is full, transit it
                 CANTransmit(u16SID, dataArray, 4);
                 //wait until message has left
-                while (C1TR01CONbits.TXREQ1);
+                waitForCanMessageTransmitted();
                 wordCounter=1; //start with the first word again.
              }
 
@@ -212,7 +235,7 @@ void CANTransmitString(unsigned int u16SID, char * cString)
                  messageCounter=messageCounter+6; //
                 //one message is full, transit it
                 CANTransmit(u16SID, dataArray, 4);
-                while (C1TR01CONbits.TXREQ1);
+                waitForCanMessageTransmitted();
             }
 
   

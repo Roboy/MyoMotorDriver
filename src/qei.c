@@ -8,7 +8,7 @@
 #include <p33FJ128MC802.h>
 #include "initIO.h"
 //file global
-long rotationCount;
+volatile long rotationCount, rotationCount2;
 //long currentEncoderPosition;
 #include "qei.h"
 #include "motorControl.h"
@@ -44,14 +44,14 @@ void initQEI2( unsigned int  startPos)
 
     QEI2CONbits.QEISIDL = 1; // discontinue module operation in idle mode
     QEI2CONbits.QEIM = 0b111;// Quadrature Encoder Interface enabled (x4mode) with position counter reset by match (MAX1CNT)
-    QEI2CONbits.SWPAB = 1; // Phase A and B swapped
+    QEI2CONbits.SWPAB = 0; // Phase A and B swapped
     QEI2CONbits.PCDOUT = 0; // disable position counter direction pin
     QEI2CONbits.TQGATE = 0; // timer gated time acc disabled
-    QEI2CONbits.POSRES = 0; // index does not reset position counter
+    QEI2CONbits.POSRES = 1; // index does reset position counter
     QEI2CONbits.TQCS = 0; // internal clock source (Tcy))
     QEI2CONbits.UPDN_SRC = 0; // direction of position counter determined using internal logic
 
-    MAX2CNT = 0xffff;
+    MAX2CNT = 0xfff; // 4095
 
     POS2CNT =  startPos;
 
@@ -67,6 +67,7 @@ void __attribute__((__interrupt__, auto_psv)) _QEI1Interrupt(void)
     IFS3bits.QEI1IF = 0; // clear interrupt
     //LED1=~LED1;
 
+
     if (POSCNT < 32768)
     {
         rotationCount=rotationCount+ (long)  0x10000; //we had a positive roll-over
@@ -75,8 +76,6 @@ void __attribute__((__interrupt__, auto_psv)) _QEI1Interrupt(void)
     {
         rotationCount=rotationCount- (long) 0x10000;//we had a negative roll-over
     }
-
-
 }
 
 
@@ -86,8 +85,14 @@ void __attribute__((__interrupt__, auto_psv)) _QEI2Interrupt(void)
     IFS4bits.QEI2IF = 0; // clear interrupt
     //LED1=~LED1;
 
-
-
+    if (POS2CNT < 32768)
+    {
+        rotationCount2=rotationCount2+ (long)  0x10000; //we had a positive roll-over
+    }
+    else
+    {
+        rotationCount2=rotationCount2- (long) 0x10000;//we had a negative roll-over
+    }
 
 }
 

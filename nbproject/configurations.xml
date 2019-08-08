@@ -37,6 +37,8 @@
       <itemPath>/home/letrend/MPLABXProjects/motorDriver.X/src/timers.c</itemPath>
       <itemPath>/home/letrend/MPLABXProjects/motorDriver.X/src/timers.h</itemPath>
       <itemPath>/opt/microchip/xc16/v1.36/support/peripheral_30F_24H_33F/delay.h</itemPath>
+      <itemPath>/home/letrend/MPLABXProjects/motorDriver.X/src/serialPortFunctions.c</itemPath>
+      <itemPath>/home/letrend/MPLABXProjects/motorDriver.X/src/serialPortFunctions.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
@@ -247,6 +249,7 @@
         <property key="UART 1" value="true"/>
         <property key="UART 2" value="true"/>
         <property key="debugoptions.useswbreakpoints" value="true"/>
+        <property key="firmware.download.all" value="false"/>
         <property key="hwtoolclock.frcindebug" value="false"/>
         <property key="memories.aux" value="false"/>
         <property key="memories.bootflash" value="false"/>

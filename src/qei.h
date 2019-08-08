@@ -15,12 +15,12 @@ void initQEI2( unsigned int  startPos);
 float getPositionInRad();
 float getVelocityInRadPerSecond();
 
-extern long rotationCount;
+extern volatile long rotationCount, rotationCount2;
 
 #define GET_ENCODER(ENCODER_POSITION_VALUE) (ENCODER_POSITION_VALUE=rotationCount+POSCNT)
 
 //todo: implement this second enccoder for spring displacement
-#define GET_SPRING(SPRING_DISPLACEMENT) (SPRING_DISPLACEMENT = POS2CNT)
+#define GET_SPRING(SPRING_DISPLACEMENT) (SPRING_DISPLACEMENT=rotationCount2+POS2CNT)
 
 #endif	/* QEI_H */
 

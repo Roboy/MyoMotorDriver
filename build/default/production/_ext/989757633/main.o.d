@@ -10,4 +10,5 @@ build/default/production/_ext/989757633/main.o:  \
  /home/letrend/MPLABXProjects/motorDriver.X/src/qei.h  \
  /home/letrend/MPLABXProjects/motorDriver.X/src/dma.h  \
  /home/letrend/MPLABXProjects/motorDriver.X/src/adc.h  \
- /home/letrend/MPLABXProjects/motorDriver.X/src/DEEEmulation.h 
+ /home/letrend/MPLABXProjects/motorDriver.X/src/DEEEmulation.h  \
+ /home/letrend/MPLABXProjects/motorDriver.X/src/serialPortFunctions.h 

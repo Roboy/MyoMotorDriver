@@ -24,6 +24,7 @@
 #define CONFIGURATION_REPLY_ID 0x11
 
 void initCAN(void);
+void waitForCanMessageTransmitted();
 void CANTransmit(unsigned int u16SID, unsigned int* pu16Data, unsigned int u16Datalen);
 int CANReceive(unsigned int* canData, unsigned int * messageID);
 void CANTransmitString(unsigned int u16SID, char * cString);

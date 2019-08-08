@@ -39,6 +39,9 @@ void initPWM(int period) {
     PWM1CON1bits.PEN2L = 0;
     PWM1CON1bits.PEN1L = 1; //	enable PWM1Low output
 
+    PWM2CON1bits.PEN1H = 0; //disable PWM outputs of PWM 2
+    PWM2CON1bits.PEN1L = 0; //disable PWM outputs of PWM 2
+
     PWM1CON2bits.IUE = 0; // updates to active PDC registers are synched to pwm timebase
     PWM1CON2bits.OSYNC = 0; // output overide synced to next Tcy boundry
     PWM1CON2bits.UDIS = 0; // enable updates to duty cycle and pwm period registers

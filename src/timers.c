@@ -6,6 +6,7 @@
 #include "motorControl.h"
 #include "qei.h"
 #include "can.h"
+#include <uart.h>
 /*! \brief  genererates the main control loop
  */
 void initTimer1(unsigned int period) {
@@ -66,26 +67,25 @@ void init_timer3(unsigned int period)
 void __attribute__((__interrupt__, auto_psv)) _T1Interrupt(void)
 {
     static int count = 0;
+
+
     _T1IF = 0; // reset Timer 1 interrupt flag
-    unsigned int canTxData[4];
-    //LED1=1;
+    // LED1=1;
     if (count < 499)
     {
         count++;
+        //LED1=~LED1;
+        
     } else
     {
+        
+
         count = 0;
-        canTxData[0]=0x8899;
-        canTxData[1]=0xAABB;
-        canTxData[2]=0xCCDD;
-        canTxData[3]=0xEEFF;
-        //CANTransmit(0x555, canTxData, 4);
+ 
     }
-    //LED1=~LED1;
-    {
-       // LED1=~LED1; //toggle LED1
-        motorControlLoop();
-    }
+
+     motorControlLoop();
+    
     //LED1=0;
 }
 

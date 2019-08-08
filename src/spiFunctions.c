@@ -37,6 +37,7 @@ void resetSPIProtocol(void)
     spiRxDataReady = 0;
     SPIControlProtocolState = reset;
     
+    
 }
 
 
@@ -56,6 +57,9 @@ void resetSPI()
  */
 void SPI1Setup(void)
 {
+
+
+
     _SPIEN = 0; //first switch off spi
     SPI1CON1bits.MSTEN = 0; //master mode disable, this is the SLAVE! So master is in charge of data rate
     SPI1CON2bits.FRMEN = 0; //disable frame support
@@ -75,12 +79,18 @@ void SPI1Setup(void)
     _SPI1IE = 0; //first, disable spi1 interrupt
     _SPI1IF = 0; //clear spi interrupts
     _SPI1IP = 6; //select spi1 interrupt priority
-    _SPI1IE = 1; //enable spi1 interrupt
+//    _SPI1IE = 1; //enable spi1 interrupt enable only when controller ready
     _SPIEN = 1; //SPI GO!
 
     spiControlMessageLength = sizeof (spiControlStreamInput) / 2;
     resetSPIProtocol(); //does what it says
 
+}
+
+void enableSPIInterrupt()
+{
+        _SPI1IF = 0; //clear spi interrupts
+        _SPI1IE = 1; //enable spi1 interrupt
 }
 
 void __attribute__((__interrupt__, auto_psv)) _SPI1Interrupt(void)
@@ -90,14 +100,14 @@ void __attribute__((__interrupt__, auto_psv)) _SPI1Interrupt(void)
     long tempPosition;
     int tempSpring;
     int dutyCycle;
-    static long positionBuffer;
+    //static long positionBuffer;
     //read the input buffer
     spiInput = SPI1BUF;
     _SPI1IF = 0; //clear spi interrupts
     _SPIROV = 0; //clear the overflow bit, ignore it if it is set
+    LED1=1;
 
-
-    LED1 = 1;
+    //LED1 = ~LED1;
 
     //check if this is a start of frame, and if so reset the protocol
     //this allows the immediate restart of a stream, even during the
@@ -109,12 +119,16 @@ void __attribute__((__interrupt__, auto_psv)) _SPI1Interrupt(void)
     {
         resetSPIProtocol();
         SPIControlProtocolState = reset;
-
+        //get the motor current now already
+        //this operation takes quite long so we peform
+        //it separately from the other data gathering to spread
+        //out the computational load between spi frames
+        spiControlStreamOutput.actualCurrent=getFilteredMotorCurrentLong();//getFilteredMotorCurrent();
+        LED1=1;
     }
 
     switch (SPIControlProtocolState)
     {
-
         case reset:
             if (spiInput == START_OF_CONTROL_MESSAGE)
             {
@@ -128,70 +142,29 @@ void __attribute__((__interrupt__, auto_psv)) _SPI1Interrupt(void)
                 SPIControlProtocolState = startOfControlFrame;
             }
             break;
-
-
-
         case startOfControlFrame:
-
             //copy received data
-
             spiControlStreamInput.dataStream[spiMessageCounter] = spiInput;
-           // if (spiMessageCounter==1)
-           // {
-           //     CANTransmitAdditionalInternalStates(spiInput,spiMessageCounter,spiControlStreamInput.dataStream[1],spiControlStreamInput.pwmRef);
-           // }
             spiMessageCounter++;
 
             //change to TxMode when all Rx Data has been received
-            if (spiMessageCounter >= (NUMBER_OF_CONTROL_INPUT_WORDS - 1))
+            if (spiMessageCounter == (NUMBER_OF_CONTROL_INPUT_WORDS - 1)) 
             {
+                
                 SPIControlProtocolState = startOfControlTxData;
 
                 //and provide output data
-                //now we also quickly prepare the output data stream
-                //CANTransmitAdditionalInternalStates(spiControlStreamInput.pwmRef ,0,1,spiMessageCounter);
                 //position
-                GET_ENCODER(tempPosition);
-                if(tempPosition!=0){
-                    tempPosition = tempPosition;
-                }
+                GET_ENCODER(spiControlStreamOutput.actualPosition);
 
-                //change word order to adapt to Myo-Ganglion Big Endiane
-                spiControlStreamOutput.actualPosition = ((tempPosition << 16) & 0xFFFF0000);
-                spiControlStreamOutput.actualPosition = spiControlStreamOutput.actualPosition | ((tempPosition >> 16)&0x0000FFFF);
-                positionBuffer=tempPosition;
-                //velocity
-
-                spiControlStreamOutput.actualVelocity=tempPosition-oldEncoderValue;
+                spiControlStreamOutput.actualVelocity=spiControlStreamOutput.actualPosition-oldEncoderValue;
                 //store old value
-                oldEncoderValue=tempPosition;
+                oldEncoderValue=spiControlStreamOutput.actualPosition;
 
-                //current
-                spiControlStreamOutput.actualCurrent=getFilteredMotorCurrent();
-
-                 //  TODO          int springDisplacement : 16; //out
-                GET_SPRING(tempSpring);
-                spiControlStreamOutput.springDisplacement=tempSpring;
-                 //  TODO           int sensor1 : 16; //out
-                //  TODO            int sensor2 : 16; //out
-
-                //errorflags TODO
-                spiControlStreamOutput.errorflags = 0;
-
-                //send data on CAN for test purposes
-                 //CANTransmitActualControlValue(1.0, tempPosition);
-                 //wait until transmission complete
-                // while (C1TR01CONbits.TXREQ1);
-                // CANTransmitAdditionalInternalStates(spiControlStreamOutput.actualCurrent, spiControlStreamOutput.springDisplacement, spiControlStreamOutput.actualVelocity,spiControlStreamInput.pwmRef);
-
-
+                GET_SPRING(spiControlStreamOutput.springDisplacement);
             }
-
             break;
-
-
         case startOfControlTxData:
-
             //copy received data
             spiControlStreamInput.dataStream[spiMessageCounter] = spiInput;
             spiMessageCounter++;
@@ -199,7 +172,7 @@ void __attribute__((__interrupt__, auto_psv)) _SPI1Interrupt(void)
             //and provide output data
             SPI1BUF = spiControlStreamOutput.dataStream[spiMessageCounter];
 
-            if (spiMessageCounter >= 11) //TODO, make message length dynamic(spiControlMessageLength-1))
+            if (spiMessageCounter >= 9) //TODO, make message length dynamic(spiControlMessageLength-1))
             {
                 SPIControlProtocolState = endOfFrame;
                 RESET_WATCHDOG;
@@ -207,33 +180,21 @@ void __attribute__((__interrupt__, auto_psv)) _SPI1Interrupt(void)
 
             }
             break;
-
-
-
         case endOfFrame:
-            LED1=0;
+            //LED1=~LED1;
             //signal that data is ready
             spiMessageCounter++;
             spiRxDataReady = 1;
 
             //drive the motor directly after SPI frame was
-
-   
-                 
-
-            if (getSPIReference(&dutyCycle) == 1)
-            {
-                    //valid data received
-                    setMotorDrive(dutyCycle);
+            if(spiControlStreamOutput.pwmRef>4000){
+                spiControlStreamOutput.pwmRef = 4000;
             }
-
-//            //send data on CAN for test purposes
-//            //remove in release version
-//           CANTransmitActualControlValue(1.0, positionBuffer);
-//                 //wait until transmission complete
-//           while (C1TR01CONbits.TXREQ1);
-//           CANTransmitAdditionalInternalStates(spiControlStreamOutput.actualCurrent, spiControlStreamOutput.springDisplacement, spiControlStreamOutput.actualVelocity,spiControlStreamInput.pwmRef);
-
+            if(spiControlStreamOutput.pwmRef<-4000){
+                spiControlStreamOutput.pwmRef = -4000;
+            }
+//            setMotorDrive(spiControlStreamOutput.pwmRef);
+            LED1=0;
            break;
 
     }

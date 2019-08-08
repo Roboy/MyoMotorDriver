@@ -57,17 +57,17 @@ OBJECTDIR=build/${CND_CONF}/${IMAGE_TYPE}
 DISTDIR=dist/${CND_CONF}/${IMAGE_TYPE}
 
 # Source Files Quoted if spaced
-SOURCEFILES_QUOTED_IF_SPACED=/home/letrend/MPLABXProjects/motorDriver.X/src/DEEEmulation.c /home/letrend/MPLABXProjects/motorDriver.X/src/FlashOperations.s /home/letrend/MPLABXProjects/motorDriver.X/src/adc.c /home/letrend/MPLABXProjects/motorDriver.X/src/can.c /home/letrend/MPLABXProjects/motorDriver.X/src/dma.c /home/letrend/MPLABXProjects/motorDriver.X/src/initIO.c /home/letrend/MPLABXProjects/motorDriver.X/src/main.c /home/letrend/MPLABXProjects/motorDriver.X/src/motorControl.c /home/letrend/MPLABXProjects/motorDriver.X/src/pwm.c /home/letrend/MPLABXProjects/motorDriver.X/src/qei.c /home/letrend/MPLABXProjects/motorDriver.X/src/spiFunctions.c /home/letrend/MPLABXProjects/motorDriver.X/src/timers.c
+SOURCEFILES_QUOTED_IF_SPACED=/home/letrend/MPLABXProjects/motorDriver.X/src/DEEEmulation.c /home/letrend/MPLABXProjects/motorDriver.X/src/FlashOperations.s /home/letrend/MPLABXProjects/motorDriver.X/src/adc.c /home/letrend/MPLABXProjects/motorDriver.X/src/can.c /home/letrend/MPLABXProjects/motorDriver.X/src/dma.c /home/letrend/MPLABXProjects/motorDriver.X/src/initIO.c /home/letrend/MPLABXProjects/motorDriver.X/src/main.c /home/letrend/MPLABXProjects/motorDriver.X/src/motorControl.c /home/letrend/MPLABXProjects/motorDriver.X/src/pwm.c /home/letrend/MPLABXProjects/motorDriver.X/src/qei.c /home/letrend/MPLABXProjects/motorDriver.X/src/spiFunctions.c /home/letrend/MPLABXProjects/motorDriver.X/src/timers.c /home/letrend/MPLABXProjects/motorDriver.X/src/serialPortFunctions.c
 
 # Object Files Quoted if spaced
-OBJECTFILES_QUOTED_IF_SPACED=${OBJECTDIR}/_ext/989757633/DEEEmulation.o ${OBJECTDIR}/_ext/989757633/FlashOperations.o ${OBJECTDIR}/_ext/989757633/adc.o ${OBJECTDIR}/_ext/989757633/can.o ${OBJECTDIR}/_ext/989757633/dma.o ${OBJECTDIR}/_ext/989757633/initIO.o ${OBJECTDIR}/_ext/989757633/main.o ${OBJECTDIR}/_ext/989757633/motorControl.o ${OBJECTDIR}/_ext/989757633/pwm.o ${OBJECTDIR}/_ext/989757633/qei.o ${OBJECTDIR}/_ext/989757633/spiFunctions.o ${OBJECTDIR}/_ext/989757633/timers.o
-POSSIBLE_DEPFILES=${OBJECTDIR}/_ext/989757633/DEEEmulation.o.d ${OBJECTDIR}/_ext/989757633/FlashOperations.o.d ${OBJECTDIR}/_ext/989757633/adc.o.d ${OBJECTDIR}/_ext/989757633/can.o.d ${OBJECTDIR}/_ext/989757633/dma.o.d ${OBJECTDIR}/_ext/989757633/initIO.o.d ${OBJECTDIR}/_ext/989757633/main.o.d ${OBJECTDIR}/_ext/989757633/motorControl.o.d ${OBJECTDIR}/_ext/989757633/pwm.o.d ${OBJECTDIR}/_ext/989757633/qei.o.d ${OBJECTDIR}/_ext/989757633/spiFunctions.o.d ${OBJECTDIR}/_ext/989757633/timers.o.d
+OBJECTFILES_QUOTED_IF_SPACED=${OBJECTDIR}/_ext/989757633/DEEEmulation.o ${OBJECTDIR}/_ext/989757633/FlashOperations.o ${OBJECTDIR}/_ext/989757633/adc.o ${OBJECTDIR}/_ext/989757633/can.o ${OBJECTDIR}/_ext/989757633/dma.o ${OBJECTDIR}/_ext/989757633/initIO.o ${OBJECTDIR}/_ext/989757633/main.o ${OBJECTDIR}/_ext/989757633/motorControl.o ${OBJECTDIR}/_ext/989757633/pwm.o ${OBJECTDIR}/_ext/989757633/qei.o ${OBJECTDIR}/_ext/989757633/spiFunctions.o ${OBJECTDIR}/_ext/989757633/timers.o ${OBJECTDIR}/_ext/989757633/serialPortFunctions.o
+POSSIBLE_DEPFILES=${OBJECTDIR}/_ext/989757633/DEEEmulation.o.d ${OBJECTDIR}/_ext/989757633/FlashOperations.o.d ${OBJECTDIR}/_ext/989757633/adc.o.d ${OBJECTDIR}/_ext/989757633/can.o.d ${OBJECTDIR}/_ext/989757633/dma.o.d ${OBJECTDIR}/_ext/989757633/initIO.o.d ${OBJECTDIR}/_ext/989757633/main.o.d ${OBJECTDIR}/_ext/989757633/motorControl.o.d ${OBJECTDIR}/_ext/989757633/pwm.o.d ${OBJECTDIR}/_ext/989757633/qei.o.d ${OBJECTDIR}/_ext/989757633/spiFunctions.o.d ${OBJECTDIR}/_ext/989757633/timers.o.d ${OBJECTDIR}/_ext/989757633/serialPortFunctions.o.d
 
 # Object Files
-OBJECTFILES=${OBJECTDIR}/_ext/989757633/DEEEmulation.o ${OBJECTDIR}/_ext/989757633/FlashOperations.o ${OBJECTDIR}/_ext/989757633/adc.o ${OBJECTDIR}/_ext/989757633/can.o ${OBJECTDIR}/_ext/989757633/dma.o ${OBJECTDIR}/_ext/989757633/initIO.o ${OBJECTDIR}/_ext/989757633/main.o ${OBJECTDIR}/_ext/989757633/motorControl.o ${OBJECTDIR}/_ext/989757633/pwm.o ${OBJECTDIR}/_ext/989757633/qei.o ${OBJECTDIR}/_ext/989757633/spiFunctions.o ${OBJECTDIR}/_ext/989757633/timers.o
+OBJECTFILES=${OBJECTDIR}/_ext/989757633/DEEEmulation.o ${OBJECTDIR}/_ext/989757633/FlashOperations.o ${OBJECTDIR}/_ext/989757633/adc.o ${OBJECTDIR}/_ext/989757633/can.o ${OBJECTDIR}/_ext/989757633/dma.o ${OBJECTDIR}/_ext/989757633/initIO.o ${OBJECTDIR}/_ext/989757633/main.o ${OBJECTDIR}/_ext/989757633/motorControl.o ${OBJECTDIR}/_ext/989757633/pwm.o ${OBJECTDIR}/_ext/989757633/qei.o ${OBJECTDIR}/_ext/989757633/spiFunctions.o ${OBJECTDIR}/_ext/989757633/timers.o ${OBJECTDIR}/_ext/989757633/serialPortFunctions.o
 
 # Source Files
-SOURCEFILES=/home/letrend/MPLABXProjects/motorDriver.X/src/DEEEmulation.c /home/letrend/MPLABXProjects/motorDriver.X/src/FlashOperations.s /home/letrend/MPLABXProjects/motorDriver.X/src/adc.c /home/letrend/MPLABXProjects/motorDriver.X/src/can.c /home/letrend/MPLABXProjects/motorDriver.X/src/dma.c /home/letrend/MPLABXProjects/motorDriver.X/src/initIO.c /home/letrend/MPLABXProjects/motorDriver.X/src/main.c /home/letrend/MPLABXProjects/motorDriver.X/src/motorControl.c /home/letrend/MPLABXProjects/motorDriver.X/src/pwm.c /home/letrend/MPLABXProjects/motorDriver.X/src/qei.c /home/letrend/MPLABXProjects/motorDriver.X/src/spiFunctions.c /home/letrend/MPLABXProjects/motorDriver.X/src/timers.c
+SOURCEFILES=/home/letrend/MPLABXProjects/motorDriver.X/src/DEEEmulation.c /home/letrend/MPLABXProjects/motorDriver.X/src/FlashOperations.s /home/letrend/MPLABXProjects/motorDriver.X/src/adc.c /home/letrend/MPLABXProjects/motorDriver.X/src/can.c /home/letrend/MPLABXProjects/motorDriver.X/src/dma.c /home/letrend/MPLABXProjects/motorDriver.X/src/initIO.c /home/letrend/MPLABXProjects/motorDriver.X/src/main.c /home/letrend/MPLABXProjects/motorDriver.X/src/motorControl.c /home/letrend/MPLABXProjects/motorDriver.X/src/pwm.c /home/letrend/MPLABXProjects/motorDriver.X/src/qei.c /home/letrend/MPLABXProjects/motorDriver.X/src/spiFunctions.c /home/letrend/MPLABXProjects/motorDriver.X/src/timers.c /home/letrend/MPLABXProjects/motorDriver.X/src/serialPortFunctions.c
 
 
 
@@ -172,6 +172,13 @@ ${OBJECTDIR}/_ext/989757633/timers.o: /home/letrend/MPLABXProjects/motorDriver.X
 	${MP_CC} $(MP_EXTRA_CC_PRE)  /home/letrend/MPLABXProjects/motorDriver.X/src/timers.c  -o ${OBJECTDIR}/_ext/989757633/timers.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/_ext/989757633/timers.o.d"      -g -D__DEBUG -D__MPLAB_DEBUGGER_ICD3=1    -omf=elf -DXPRJ_default=$(CND_CONF)  -legacy-libc  $(COMPARISON_BUILD)  -O0 -msmart-io=1 -Wall -msfr-warn=off  
 	@${FIXDEPS} "${OBJECTDIR}/_ext/989757633/timers.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
 	
+${OBJECTDIR}/_ext/989757633/serialPortFunctions.o: /home/letrend/MPLABXProjects/motorDriver.X/src/serialPortFunctions.c  nbproject/Makefile-${CND_CONF}.mk
+	@${MKDIR} "${OBJECTDIR}/_ext/989757633" 
+	@${RM} ${OBJECTDIR}/_ext/989757633/serialPortFunctions.o.d 
+	@${RM} ${OBJECTDIR}/_ext/989757633/serialPortFunctions.o 
+	${MP_CC} $(MP_EXTRA_CC_PRE)  /home/letrend/MPLABXProjects/motorDriver.X/src/serialPortFunctions.c  -o ${OBJECTDIR}/_ext/989757633/serialPortFunctions.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/_ext/989757633/serialPortFunctions.o.d"      -g -D__DEBUG -D__MPLAB_DEBUGGER_ICD3=1    -omf=elf -DXPRJ_default=$(CND_CONF)  -legacy-libc  $(COMPARISON_BUILD)  -O0 -msmart-io=1 -Wall -msfr-warn=off  
+	@${FIXDEPS} "${OBJECTDIR}/_ext/989757633/serialPortFunctions.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
+	
 else
 ${OBJECTDIR}/_ext/989757633/DEEEmulation.o: /home/letrend/MPLABXProjects/motorDriver.X/src/DEEEmulation.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} "${OBJECTDIR}/_ext/989757633" 
@@ -249,6 +256,13 @@ ${OBJECTDIR}/_ext/989757633/timers.o: /home/letrend/MPLABXProjects/motorDriver.X
 	@${RM} ${OBJECTDIR}/_ext/989757633/timers.o 
 	${MP_CC} $(MP_EXTRA_CC_PRE)  /home/letrend/MPLABXProjects/motorDriver.X/src/timers.c  -o ${OBJECTDIR}/_ext/989757633/timers.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/_ext/989757633/timers.o.d"        -g -omf=elf -DXPRJ_default=$(CND_CONF)  -legacy-libc  $(COMPARISON_BUILD)  -O0 -msmart-io=1 -Wall -msfr-warn=off  
 	@${FIXDEPS} "${OBJECTDIR}/_ext/989757633/timers.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
+	
+${OBJECTDIR}/_ext/989757633/serialPortFunctions.o: /home/letrend/MPLABXProjects/motorDriver.X/src/serialPortFunctions.c  nbproject/Makefile-${CND_CONF}.mk
+	@${MKDIR} "${OBJECTDIR}/_ext/989757633" 
+	@${RM} ${OBJECTDIR}/_ext/989757633/serialPortFunctions.o.d 
+	@${RM} ${OBJECTDIR}/_ext/989757633/serialPortFunctions.o 
+	${MP_CC} $(MP_EXTRA_CC_PRE)  /home/letrend/MPLABXProjects/motorDriver.X/src/serialPortFunctions.c  -o ${OBJECTDIR}/_ext/989757633/serialPortFunctions.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/_ext/989757633/serialPortFunctions.o.d"        -g -omf=elf -DXPRJ_default=$(CND_CONF)  -legacy-libc  $(COMPARISON_BUILD)  -O0 -msmart-io=1 -Wall -msfr-warn=off  
+	@${FIXDEPS} "${OBJECTDIR}/_ext/989757633/serialPortFunctions.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
 	
 endif
 

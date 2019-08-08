@@ -12,12 +12,13 @@
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
+#include <uart.h>
 
 #define MOTOR_TEST_RAMP_ON 0
-#define TEST_CONFIG_DATA 1
+#define TEST_CONFIG_DATA 0
 #define MAX_PWM_DRIVE_VALUE 4000
 
-char welcomeString[]="Welcome to the MyoMotorDriver!";
+char welcomeString[]="Welcome to the MyoMotorDriver V3!";
 char dataString[2024];
 //define the number of control cycles that can pass without communcation from the MyoGanglion
 int startUpTimer; //counts the time after reset
@@ -30,6 +31,7 @@ float error, error_1,error_int; //local PID parameters
 float Kp, Kd, Ki;
 
 int actualMotorCurrent;
+int motorCurrentMaxValue;
 
 float referenceValue;
 float actualValue;
@@ -48,9 +50,30 @@ MOTOR_CONTROL_STATE motorControlState;
 EEPROM_DATA eePromData;
 unsigned eePromWriteRequired; //will be set if config message arrives
 unsigned configLoadRequested;
+unsigned serialConfigByteCounter;
 unsigned configLoadComplete;
+
 unsigned int canSendData[4]; //an array to fill for sending CAN information
 unsigned int startUpMessageSent=0;
+
+void setSerialConfigurationData(char rxData)
+{
+    configLoadRequested=1; //tell the rest of the system that we are in configuartion mode
+
+    eePromData.byteStream[serialConfigByteCounter]=rxData;
+    //get ready for next byte
+
+    serialConfigByteCounter++;
+    if (serialConfigByteCounter==sizeof(eePromData))
+    {
+       // putsUART2("CONFIGURATION COMPLETE");
+        eePromWriteRequired=1;
+        configLoadComplete=1;
+
+    }
+
+
+}
 
 
 /*
@@ -60,7 +83,30 @@ unsigned int startUpMessageSent=0;
 int getFilteredMotorCurrent(void)
 {
     return (int) actualMotorCurrent * eePromData.currentConversionFactor; //co
+
 }
+
+ void prepareMotorCurrentConversion()
+ {
+    //converts the resolution in mA per bit to the maximum value that can be measured.
+    //in 10 bit resolution!
+
+    motorCurrentMaxValue=(int) ( eePromData.currentConversionFactor*1024.0) ;
+ }
+
+ int getFilteredMotorCurrentLong(void)
+ {
+     int retValue;
+     long tempMotorCurrent;
+     int  sampleMotorCurrent;
+     sampleMotorCurrent=actualMotorCurrent; //make a copy, this is an atomic operation
+
+     tempMotorCurrent=sampleMotorCurrent;
+     tempMotorCurrent=tempMotorCurrent*motorCurrentMaxValue;
+     tempMotorCurrent=(tempMotorCurrent + 512)>>10; //divide by 1024 with rounding
+     retValue=(int) tempMotorCurrent;
+     return retValue;
+ }
 
 float getDeltaTime()
 {
@@ -109,6 +155,7 @@ void resetMotorController()
     startUpMessageSent=0;
     eePromWriteRequired=0; //0 after reset, will be set if config message arrives
     configLoadRequested=0; //will be set when first configuration CAN messge arrives
+    serialConfigByteCounter=0; //counts configuration bytes as they arrive on serial port
     configLoadComplete=0; //will be set when all configuration bits have been transmitted and stored
     motorControlState=MOTOR_RESET;
     RESET_WATCHDOG;
@@ -120,10 +167,10 @@ void resetMotorController()
 void setConfigDataInEEProm()
 {
     int i;
-    //LED1=0; //switch off LED1
+
     if (eePromWriteRequired==1)//variable set by configuration CAN message
     {
-        //LED1=1; //switch on to indicate that EEPROM write was performed
+        
         _NSTDIS=1; //disable all interrupts during write
         for(i=0;i<(sizeof(EEPROM_DATA)>>1);i++)
         {
@@ -217,12 +264,13 @@ void printConfigData()
         "                    positiveSaturation: %12.4f \n"
         "                    negativeSaturation: %12.4f \n"
         "                    integratorSaturation: %12.4f \n"
-         "                   currentConversionFactor: %12.4f \n"
+        "                    currentConversionFactor: %12.4f \n"
         "                    encoderCountsPerRevolution: %d \n"
         "                    referenceValueMessageId:  0x%x\n"
         "                    actualValueMessageId: 0x%x\n"
         "                    pidGainsMessageId: 0x%x\n"
-        "                    nodeID: %d",sizeof(EEPROM_DATA),
+        "                    nodeID: %d \n"
+        "                    readyForConfiguration.\n",sizeof(EEPROM_DATA),
                 eePromData.ControlMode,eePromData.cycleTimeIn100usIncrements ,eePromData.PGain,
                 eePromData.IGain, eePromData.DGain, eePromData.positiveSaturation, eePromData.negativeSaturation, eePromData.integratorSaturation,eePromData.currentConversionFactor , eePromData.EncoderCountsPerRevolution,
                 eePromData.referenceValueMessageId, eePromData.actualValueMessageId, eePromData.pidGainsMessageId,
@@ -232,11 +280,16 @@ void printConfigData()
     else
     {
 
-        sprintf(dataString,"Device not configured for CAN, data checked: %d",dataCounter);
+        sprintf(dataString,"Device not configurerd, data checked: %d \n, readyForConfiguration.\n",dataCounter);
+
     }
-//    CANTransmitString(STRING_MESSAGE+eePromData.nodeID, dataString);
+    putsUART2(dataString);
+    CANTransmitString(STRING_MESSAGE+eePromData.nodeID, dataString);
+
 
 }
+
+
 
 void setConfigurationData(unsigned * canData,unsigned dataLength)
 {
@@ -396,8 +449,6 @@ void filterDCCurrentMeasurements()
     static unsigned currentAverage=0;
     int index;
 
-
-        LED1=1 ;//
    //process data
     //data should be in the following order5
 
@@ -475,13 +526,11 @@ void filterDCCurrentMeasurements()
 
     actualMotorCurrent=(currentAverage+8)>>4; //divide by 16, take care of rounding,  and supply to the rest of the system
     counter++; //increment
-        //LED1=0;
+       
 
 
         //test a2d
         //motorCurrent=adcData[2];
-
-        LED1=0;
 
 }
 
@@ -494,7 +543,7 @@ int getAnalogCurrentData()
    //we start the the auto-sampling
 
       //we make the old adc data unvalid
-    //LED1=1;
+  
    // invalidateADCData();
     AD1CON1bits.ASAM		= 1;//start the ADC converter
 
@@ -509,9 +558,9 @@ void localPIDController(void)
 
     float deltaError;
     float outPut;
-    float sinusoidalTestOutput;
+    //float sinusoidalTestOutput;
     float actualVelocity;
-    static float controlTime=0;
+   // static float controlTime=0;
     float motorCurrentMeasurement;
 
     int encoder2Value;
@@ -521,7 +570,6 @@ void localPIDController(void)
 
     // defined globallyfloat error, error_1,error_in
 
-   // LED1=1;
     //disable interrupts to make sure we have consistent data
     _NSTDIS=1;
     GET_ENCODER (currentEncoderPosition); //to be transmitted on CAN bus
@@ -564,16 +612,16 @@ void localPIDController(void)
 
     INCREMENT_CAN_WATCHDOG;
 
-//    if (canWatchDogCounter>=maxCanWatchDogTimeCounter)
-//    {
-//        if ((eePromData.ControlMode==2)||(eePromData.ControlMode==3)||(eePromData.ControlMode==0)) //velocity or current control
-//        {
-//            outPut=0; //do not drive if CAN connection is lost
-//            canDummyData[0]=0xAAAA; canDummyData[1]=0xBBBB; canDummyData[2]=0xCCCC; canDummyData[3]=C1RXOVF1;
-//            CANTransmit(TEST_MESSAGE_01+eePromData.nodeID, canDummyData, 4);
-//               while (C1TR01CONbits.TXREQ1); //wait until message is out
-//        }
-//    }
+    if (canWatchDogCounter>=maxCanWatchDogTimeCounter)
+    {
+        if ((eePromData.ControlMode==2)||(eePromData.ControlMode==3)||(eePromData.ControlMode==0)) //velocity or current control
+        {
+            outPut=0; //do not drive if CAN connection is lost
+            canDummyData[0]=0xAAAA; canDummyData[1]=0xBBBB; canDummyData[2]=0xCCCC; canDummyData[3]=C1RXOVF1;
+            //CANTransmit(TEST_MESSAGE_01+eePromData.nodeID, canDummyData, 4);
+            //waitForCanMessageTransmitted();//wait until message is out
+        }
+    }
 
 
     if (eePromData.ControlMode==0)  //this is open loop control
@@ -594,12 +642,12 @@ void localPIDController(void)
     //get encoder input two and transmit this
     //TODO: This is  a hack for testing the Myorobotics toolkit!!!
     GET_SPRING(encoder2Value);
-//    CANTransmitActualControlValue( actualValue ,currentEncoderPosition /*sinusoidalTestOutput+actualValue*/);
-//    //wait until transmission complete
-//    while (C1TR01CONbits.TXREQ1);
-//    CANTransmitAdditionalInternalStates(actualMotorCurrent,encoder2Value,0,0 );
+    CANTransmitActualControlValue( actualValue ,currentEncoderPosition /*sinusoidalTestOutput+actualValue*/);
+    //wait until transmission complete
+    waitForCanMessageTransmitted();
+    CANTransmitAdditionalInternalStates(actualMotorCurrent,encoder2Value,0,0 );
 
-   //LED1=0;
+
 
 }
 void brakeMotor()
@@ -608,59 +656,39 @@ void brakeMotor()
     MOTOR_BRAKE = LOCKED;
 }
 
+void releaseMotor()
+{
+    setPWMDutyCycle(0);
+    MOTOR_BRAKE = OPEN;
+}
 
 //called cyclicly in timer interrupt (
 void motorControlLoop() {
     int dutyCycle;
-#if (MOTOR_TEST_RAMP_ON==1)
-
-    static unsigned int dc = 0;
-    static int increment = 1;
-    static int dir = -1;
-    setMotorDrive(dc, dir);
-    if (dc == 6000) {
-        increment = -1;
-    } else if (dc == 0) {
-        increment = 1;
-        if (dir == 1)//toogle motor turning direction
-        {
-            dir = -1;
-        } else {
-            dir = +1;
-        }
-    }
-    dc = dc + increment;
-
-#else
-
-    /*
-     * motor control loop
-     *
-     *
-
-     */
 
      //the watchdog is incremented here and is reset
      //when a complete SPI data package has arrived
     INCREMENT_WATCHDOG;
 
-
-
+    // LED1=~LED1;
+    //U2TXREG= motorControlState;
     switch (motorControlState)
 
     {
 
         case MOTOR_RESET:
+             enableSPIInterrupt();
               //LED1=~LED1; //toggle LED1
               brakeMotor();
+              prepareMotorCurrentConversion();
               getAnalogCurrentData();
-//            if (startUpMessageSent==0)//only send once
-//            {
-//                CANTransmitString(STRING_MESSAGE+eePromData.nodeID, welcomeString);
-//
-//                CANTransmit(WAKE_UP_MSG_BASE_ID+eePromData.nodeID, canSendData, 0);
-//                startUpMessageSent=1;
-//            }
+            if (startUpMessageSent==0)//only send once
+            {
+                CANTransmitString(STRING_MESSAGE+eePromData.nodeID, welcomeString);
+
+                CANTransmit(WAKE_UP_MSG_BASE_ID+eePromData.nodeID, canSendData, 0);
+                startUpMessageSent=1;
+            }
 
 
             //  LED1=~LED1;
@@ -673,13 +701,14 @@ void motorControlLoop() {
             }
             if (startUpTimer>=START_UP_TIME)
             {
-                LED1=0;
+                //LED1=0;
                 motorControlState=MOTOR_RUNNING;
                 //before we go to the motor running state we set the time to the appropriate value
                 initTimer1(63*eePromData.cycleTimeIn100usIncrements);
                 setDeltaTimes();
                 setPWMSaturation();
                 startTimer1();
+                enableSPIInterrupt();
 
 
             }
@@ -700,6 +729,7 @@ void motorControlLoop() {
                 //CANTransmit(eePromData.CanID, &(eePromData.dataStream[1]), 4);
                 canDummyData[0]=0xAAAA; canDummyData[1]=0xBBBB; canDummyData[2]=0xCCCC; canDummyData[3]=0xDDDD;
              //   CANTransmit(TEST_MESSAGE_01+eePromData.nodeID, canDummyData, 4);
+                putsUART2("CONFIGURATION COMPLETE\n");
 
             }
 
@@ -707,6 +737,7 @@ void motorControlLoop() {
 
         case CONFIG_STORED:
             motorControlState=MOTOR_RUNNING;
+            enableSPIInterrupt();
            // canDummyData[0]=0x1111; canDummyData[1]=0x1111; canDummyData[2]=0x1111; canDummyData[3]=0x1111;
             //CANTransmit(TEST_MESSAGE_01, canDummyData, 4);
            printConfigData();
@@ -727,6 +758,7 @@ void motorControlLoop() {
             brakeMotor();
             SPI1Setup();
             resetSPI();
+            enableSPIInterrupt();
 
         break;
 
@@ -736,15 +768,12 @@ void motorControlLoop() {
             {
                 //we are communicating again
                 motorControlState=MOTOR_RUNNING;
+                //enableSPIInterrupt();
             }
 
         break;
 
         case MOTOR_RUNNING:
-            //normal control operation
-            //lets get the reference from SPI
-           // CANTransmit(TEST_MESSAGE_01+eePromData.nodeID , canDummyData, 0);
-            //LED1=~LED1;
 
             if (watchDogCounter>=CONTROL_WATCHDOG_MAX)
             {
@@ -757,11 +786,7 @@ void motorControlLoop() {
 
             if (eePromData.ControlMode==0xFFFF) //spi control
             {
-                if (getSPIReference(&dutyCycle) == 1)
-                {
-                    //valid data received
-                    //setMotorDrive(dutyCycle);
-                }
+                //in this case we don't do anything
             }
             else //local control
             {
@@ -771,12 +796,12 @@ void motorControlLoop() {
                 localPIDController();
             }
 
-
+           // LED1=0;
         break;
 
 
     }
-#endif
+
 
 
 }

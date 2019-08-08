@@ -83,6 +83,7 @@ typedef struct struct_EEPROMDATA {
 
 
         unsigned int dataStream[21];
+        char byteStream[42];
 
 
 
@@ -95,10 +96,14 @@ extern int watchDogCounter;
 extern int maxCanWatchDogTimeCounter;
 extern int canWatchDogCounter;
 extern EEPROM_DATA eePromData;
+void prepareMotorCurrentConversion();
+void setSerialConfigurationData(char rxData);
 int getFilteredMotorCurrent(void);
+int getFilteredMotorCurrentLong(void);
 void getConfigDataFromEEProm(void);
 void setMotorDrive(int driveValue);
 void brakeMotor();
+void releaseMotor();
 void motorControlLoop();
 void setConfigurationData(unsigned * canData,unsigned dataLength);
 void setReferenceData(unsigned * canData,unsigned dataLength);

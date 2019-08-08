@@ -68,6 +68,7 @@
 
 #include <xc.h>
 #include "DEEEmulation.h"
+#define ERASE_PAGE          0x4003
 
 // User constant validation
 #if DATA_EE_BANKS == 0

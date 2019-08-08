@@ -103,7 +103,7 @@ void setupADC1()
     //ADCON2
 
     AD1CON2bits.VCFG=0b000; //select Vref+ and Vref- as internal reference voltage
-    AD1CON2bits.CSCNA=0; //do not enable analog input SCAN on channel 0
+    AD1CON2bits.CSCNA=1; //enable analog input SCAN on channel 0
     AD1CON2bits.CHPS=0b11; // important for 10 bit mode //unimplemented in 12-bit mode
     //AD1CON2bits.BUFS=x; //indicates which buffer is currently written (only if BUFM=1)
     AD1CON2bits.SMPI=3;//Selects Increment Rate for DMA Addresses bits or number of sample/conversion operations per interrupt
