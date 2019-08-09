@@ -27,7 +27,7 @@
 #include "DEEEmulation.h"
 #include "serialPortFunctions.h"
 
-#define DEBUG
+//#define DEBUG
 
 #ifndef DEBUG
     /*** special registers setup using macros located in p33FJ128GP802.h ***/
