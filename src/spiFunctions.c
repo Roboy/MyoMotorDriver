@@ -30,7 +30,7 @@ union {
         int actualVelocity : 16; //out
         int actualCurrent : 16; //out
         long springDisplacement : 32; //out
-        int sensor1 : 16; //out
+        int sensor : 16; //out
     };
     volatile unsigned int dataStream[10];
 }SPIFrame; //end union
@@ -112,14 +112,13 @@ void __attribute__((__interrupt__, auto_psv)) _SPI1Interrupt(void)
     }else{
         spiMessageCounter++;
     }
-    if(spiMessageCounter<3){
+    if(spiMessageCounter<8){
         LED1 = 1;
-//        spiControlStreamInput.dataStream[spiMessageCounter]= SPI1BUF;
-    }else if(spiMessageCounter<10){
-//        spiControlStreamInput.dataStream[spiMessageCounter] = spiMessageCounter;
-        SPI1BUF = SPIFrame.dataStream[spiMessageCounter];
+        if(spiMessageCounter<3)
+            SPIFrame.dataStream[spiMessageCounter]= SPI1BUF;
+        SPI1BUF = SPIFrame.dataStream[spiMessageCounter+2];
     }
-    if(spiMessageCounter==9){ // we update after everything was send obviously
+    if(spiMessageCounter==7){ // we update after everything was send obviously
         //position
         GET_ENCODER(SPIFrame.actualPosition);
 
@@ -130,15 +129,16 @@ void __attribute__((__interrupt__, auto_psv)) _SPI1Interrupt(void)
         GET_ENCODER2(SPIFrame.springDisplacement);
         
         SPIFrame.actualCurrent=getFilteredMotorCurrentLong();
+        SPIFrame.sensor=0xBEEF;
+        SPI1BUF = 0xBEEF;
         
-        //drive the motor directly after SPI frame was
-        if(SPIFrame.pwmRef>4000){
-            SPIFrame.pwmRef = 4000;
+        if(SPIFrame.pwmRef>2000){
+            SPIFrame.pwmRef = 2000;
         }
-        if(SPIFrame.pwmRef<-4000){
-            SPIFrame.pwmRef = -4000;
+        if(SPIFrame.pwmRef<-2000){
+            SPIFrame.pwmRef = -2000;
         }
-//        setMotorDrive(spiControlStreamOutput.pwmRef);
+        setMotorDrive(SPIFrame.pwmRef);
         LED1=0;
     }
 }
