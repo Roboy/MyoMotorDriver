@@ -15,17 +15,15 @@ Change History:
 #include "qei.h"
 #include "can.h"
 
-SPICOMMUNICATIONSTREAM_CONTROL spiControlStreamInput;
-SPICOMMUNICATIONSTREAM_CONTROL spiControlStreamOutput;
-
-
-
 unsigned int spiControlMessageLength; //=sizeof(spiControlStreamInput)/2;
 unsigned int spiMessageCounter; //counts datastream in words (16 bit)
 unsigned int spiTxWordCounter;
 unsigned int spiRxDataReady;
 long oldEncoderValue;
 PROTOCOLSTATE SPIControlProtocolState;
+
+SPICOMMUNICATIONSTREAM_CONTROL spiControlStreamInput;
+SPICOMMUNICATIONSTREAM_CONTROL spiControlStreamOutput;
 
 /*! \brief resets the SPI protocol but not the SPI hardware.
  *
@@ -34,10 +32,7 @@ void resetSPIProtocol(void)
 {
     spiMessageCounter = 0;
     spiTxWordCounter = 0;
-    spiRxDataReady = 0;
-    SPIControlProtocolState = reset;
-    
-    
+    spiRxDataReady = 0;    
 }
 
 
@@ -46,7 +41,7 @@ void resetSPIProtocol(void)
 void resetSPI()
 {
     resetSPIProtocol();
-    GET_ENCODER(oldEncoderValue); //store the current encoder value as the old encoder value;
+    oldEncoderValue = encoderPos_0; //store the current encoder value as the old encoder value;
     _SPI1IF = 0; //clear spi interrupts
     _SPIROV = 0; //clear the overflow bit, ignore it if it is set
 }
@@ -83,7 +78,6 @@ void SPI1Setup(void)
     _SPIEN = 1; //SPI GO!
 
     spiControlMessageLength = sizeof (spiControlStreamInput) / 2;
-    resetSPIProtocol(); //does what it says
 
 }
 
@@ -96,108 +90,106 @@ void enableSPIInterrupt()
 void __attribute__((__interrupt__, auto_psv)) _SPI1Interrupt(void)
 {
 
-    unsigned int spiInput;
-    long tempPosition;
-    int tempSpring;
-    int dutyCycle;
-    //static long positionBuffer;
-    //read the input buffer
-    spiInput = SPI1BUF;
     _SPI1IF = 0; //clear spi interrupts
     _SPIROV = 0; //clear the overflow bit, ignore it if it is set
     LED1=1;
-
-    //LED1 = ~LED1;
-
+    
     //check if this is a start of frame, and if so reset the protocol
     //this allows the immediate restart of a stream, even during the
     //broadcast of a stream. It makes the communcation robust and avoids
     //situation where the protocol receiver waits for a word
     //This means we can always restart
 
-    if ((spiInput & START_OF_FRAME_MASK) != 0)
-    {
-        resetSPIProtocol();
-        SPIControlProtocolState = reset;
-        //get the motor current now already
-        //this operation takes quite long so we peform
-        //it separately from the other data gathering to spread
-        //out the computational load between spi frames
-        spiControlStreamOutput.actualCurrent=getFilteredMotorCurrentLong();//getFilteredMotorCurrent();
-        LED1=1;
+    if ((SPI1BUF & START_OF_FRAME_MASK) != 0){
+        spiMessageCounter = 1;
+    }else{
+        spiMessageCounter++;
     }
+    if(spiMessageCounter<3){
+        LED1 = 1;
+//        spiControlStreamInput.dataStream[spiMessageCounter]= SPI1BUF;
+    }else if(spiMessageCounter<10){
+//        spiControlStreamInput.dataStream[spiMessageCounter] = spiMessageCounter;
+        SPI1BUF = spiControlStreamInput.dataStream[spiMessageCounter];
+    }
+    if(spiMessageCounter==9){ // we update after everything was send obviously
+        //position
+        spiControlStreamOutput.actualPosition = encoderPos_0;
 
-    switch (SPIControlProtocolState)
-    {
-        case reset:
-            if (spiInput == START_OF_CONTROL_MESSAGE)
-            {
-                //prepare Tx Data for sending
-                //collect Rx Data
-                //LED1=~LED1;
-                spiControlStreamInput.dataStream[spiMessageCounter] = spiInput;
-                //CANTransmitAdditionalInternalStates(spiInput,spiMessageCounter,spiControlStreamInput.dataStream[0],spiControlStreamInput.startOfFrame);
+        spiControlStreamOutput.actualVelocity=spiControlStreamOutput.actualPosition-oldEncoderValue;
+        //store old value
+        oldEncoderValue=spiControlStreamOutput.actualPosition;
 
-                spiMessageCounter++;
-                SPIControlProtocolState = startOfControlFrame;
-            }
-            break;
-        case startOfControlFrame:
-            //copy received data
-            spiControlStreamInput.dataStream[spiMessageCounter] = spiInput;
-            spiMessageCounter++;
+        spiControlStreamOutput.springDisplacement = encoderPos_1;
+        
+        spiControlStreamOutput.actualCurrent=getFilteredMotorCurrentLong();
+        
+        //drive the motor directly after SPI frame was
+        if(spiControlStreamOutput.pwmRef>4000){
+            spiControlStreamOutput.pwmRef = 4000;
+        }
+        if(spiControlStreamOutput.pwmRef<-4000){
+            spiControlStreamOutput.pwmRef = -4000;
+        }
+//        setMotorDrive(spiControlStreamOutput.pwmRef);
+        LED1=0;
+    }
+    
 
-            //change to TxMode when all Rx Data has been received
-            if (spiMessageCounter == (NUMBER_OF_CONTROL_INPUT_WORDS - 1)) 
-            {
-                
-                SPIControlProtocolState = startOfControlTxData;
-
-                //and provide output data
-                //position
-                GET_ENCODER(spiControlStreamOutput.actualPosition);
-
-                spiControlStreamOutput.actualVelocity=spiControlStreamOutput.actualPosition-oldEncoderValue;
-                //store old value
-                oldEncoderValue=spiControlStreamOutput.actualPosition;
-
-                GET_SPRING(spiControlStreamOutput.springDisplacement);
-            }
-            break;
-        case startOfControlTxData:
-            //copy received data
-            spiControlStreamInput.dataStream[spiMessageCounter] = spiInput;
-            spiMessageCounter++;
-
-            //and provide output data
-            SPI1BUF = spiControlStreamOutput.dataStream[spiMessageCounter];
-
-            if (spiMessageCounter >= 9) //TODO, make message length dynamic(spiControlMessageLength-1))
-            {
-                SPIControlProtocolState = endOfFrame;
-                RESET_WATCHDOG;
-                //LED1 = ~LED1;
-
-            }
-            break;
-        case endOfFrame:
-            //LED1=~LED1;
-            //signal that data is ready
-            spiMessageCounter++;
-            spiRxDataReady = 1;
-
-            //drive the motor directly after SPI frame was
-            if(spiControlStreamOutput.pwmRef>4000){
-                spiControlStreamOutput.pwmRef = 4000;
-            }
-            if(spiControlStreamOutput.pwmRef<-4000){
-                spiControlStreamOutput.pwmRef = -4000;
-            }
+//    switch (SPIControlProtocolState)
+//    {
+//        case startOfControlFrame:
+//            //copy received data
+////            spiControlStreamInput.dataStream[spiMessageCounter] = spiInput;
+//
+//            //change to TxMode when all Rx Data has been received
+//            if (spiMessageCounter == 2) 
+//            {
+////                
+//                SPIControlProtocolState = startOfControlTxData;
+////
+////                //and provide output data
+////                //position
+////                GET_ENCODER(spiControlStreamOutput.actualPosition);
+////
+////                spiControlStreamOutput.actualVelocity=spiControlStreamOutput.actualPosition-oldEncoderValue;
+////                //store old value
+////                oldEncoderValue=spiControlStreamOutput.actualPosition;
+////
+////                GET_SPRING(spiControlStreamOutput.springDisplacement);
+//            }
+//            spiMessageCounter++;
+//            break;
+//        case startOfControlTxData:
+//            //and provide output data
+//            SPI1BUF = spiMessageCounter;//spiControlStreamOutput.dataStream[spiMessageCounter];
+//            
+//            if (spiMessageCounter >= 9) 
+//            {
+//                SPIControlProtocolState = endOfFrame;
+//                RESET_WATCHDOG;
+//                //LED1 = ~LED1;
+//            }
+//            spiMessageCounter++;
+//            break;
+//        case endOfFrame:
+//            //LED1=~LED1;
+//            //signal that data is ready
+//            spiRxDataReady = 1;
+//
+//            //drive the motor directly after SPI frame was
+//            if(spiControlStreamOutput.pwmRef>4000){
+//                spiControlStreamOutput.pwmRef = 4000;
+//            }
+//            if(spiControlStreamOutput.pwmRef<-4000){
+//                spiControlStreamOutput.pwmRef = -4000;
+//            }
 //            setMotorDrive(spiControlStreamOutput.pwmRef);
-            LED1=0;
-           break;
-
-    }
+//            LED1=0;
+//           break;
+//        default: 
+//            break;
+//    }
 }
 
 int getSPIReference(int * referenceValue)

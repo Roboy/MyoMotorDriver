@@ -13,6 +13,8 @@ volatile long rotationCount, rotationCount2;
 #include "qei.h"
 #include "motorControl.h"
 #include <math.h>
+long encoderPos_0;
+long encoderPos_1;
 
 //****************************************************************INITIALISE CAN************************
 
@@ -67,7 +69,6 @@ void __attribute__((__interrupt__, auto_psv)) _QEI1Interrupt(void)
     IFS3bits.QEI1IF = 0; // clear interrupt
     //LED1=~LED1;
 
-
     if (POSCNT < 32768)
     {
         rotationCount=rotationCount+ (long)  0x10000; //we had a positive roll-over
@@ -76,6 +77,7 @@ void __attribute__((__interrupt__, auto_psv)) _QEI1Interrupt(void)
     {
         rotationCount=rotationCount- (long) 0x10000;//we had a negative roll-over
     }
+    encoderPos_0 = rotationCount*32768 + POSCNT;
 }
 
 
@@ -99,13 +101,11 @@ void __attribute__((__interrupt__, auto_psv)) _QEI2Interrupt(void)
 
 float getPositionInRad()
 {
-    long currentEncoderPosition;
         //disable interrupts to make sure we have consistent data
     _NSTDIS=1;
-    GET_ENCODER (currentEncoderPosition);
         //disable interrupts to make sure we have consistent data
     _NSTDIS=0;
-    return MYO_PI*2*currentEncoderPosition/eePromData.EncoderCountsPerRevolution;
+    return MYO_PI*2*encoderPos_0/eePromData.EncoderCountsPerRevolution;
 }
 
 
@@ -119,9 +119,8 @@ float getVelocityInRadPerSecond()
 
         //disable interrupts to make sure we have consistent data
     _NSTDIS=1;
-    GET_ENCODER (currentPosition);
     _NSTDIS=0;
-    velocity=MYO_PI*2* ((currentPosition-oldPosition)*getOneOverDeltaTime()) /eePromData.EncoderCountsPerRevolution ;
+    velocity=MYO_PI*2* ((encoderPos_0-oldPosition)*getOneOverDeltaTime()) /eePromData.EncoderCountsPerRevolution ;
 
     oldPosition=currentPosition;
     return velocity;

@@ -27,51 +27,27 @@
 #include "DEEEmulation.h"
 #include "serialPortFunctions.h"
 
+#define DEBUG
 
-/*** special registers setup using macros located in p33FJ128GP802.h ***/
-// bootloader settings
- int FOSCSEL __attribute__((space(prog), address(0xF80006))) = 0x3 ;
-//_FOSCSEL(
-//    FNOSC_PRIPLL &       // Oscillator Mode (Primary Oscillator (XT, HS, EC) w/ PLL)
-//    IESO_OFF             // Internal External Switch Over Mode (Start-up device with user-selected oscillator source)
-//);
- int FOSC __attribute__((space(prog), address(0xF80008))) = 0xC0 ;
-//_FOSC(
-//    POSCMD_EC &          // Primary Oscillator Source (EC Oscillator Mode)
-//    OSCIOFNC_ON &        // OSC2 Pin Function (OSC2 pin has digital I/O function)
-//    IOL1WAY_OFF &        // Peripheral Pin Select Configuration (Allow Multiple Re-configurations)
-//    FCKSM_CSDCMD         // Clock Switching and Monitor (Both Clock Switching and Fail-Safe Clock Monitor are disabled)
-//);
-_FWDT(FWDTEN_OFF); // Turn off Watchdog Timer
-_FGS(GSS_OFF); // Set General code protect off
-_FPOR(PWMPIN_OFF & HPOL_OFF & LPOL_OFF & FPWRT_PWR128);  //PWMPIN_OFF means that PWM pins are controlled by PWM unit at reset
- int FICD __attribute__((space(prog), address(0xF8000E))) = 0xFFDD ;
-//_FICD(
-//    ICS_PGD3 &           // Comm Channel Select (Communicate on PGC3/EMUC3 and PGD3/EMUD3)
-//    JTAGEN_OFF           // JTAG Port Enable (JTAG is Disabled)
-//);
+#ifndef DEBUG
+    /*** special registers setup using macros located in p33FJ128GP802.h ***/
+    // bootloader settings
+     int FOSCSEL __attribute__((space(prog), address(0xF80006))) = 0x3 ;
+     int FOSC __attribute__((space(prog), address(0xF80008))) = 0xC0 ;
+    _FWDT(FWDTEN_OFF); // Turn off Watchdog Timer
+    _FGS(GSS_OFF); // Set General code protect off
+    _FPOR(PWMPIN_OFF & HPOL_OFF & LPOL_OFF & FPWRT_PWR128);  //PWMPIN_OFF means that PWM pins are controlled by PWM unit at reset
+     int FICD __attribute__((space(prog), address(0xF8000E))) = 0xFFDD ;
+#else
 
-/*
-_FBS( RBS_NO_RAM & BSS_NO_FLASH & BWRP_WRPROTECT_OFF );
-_FSS( RSS_NO_RAM & SSS_NO_FLASH & SWRP_WRPROTECT_OFF );
-_FGS( GSS_OFF & GCP_OFF  & GWRP_OFF );
-_FOSCSEL( FNOSC_PRIPLL & IESO_OFF );
-//_FOSC( FCKSM_CSDCMD & OSCIOFNC_ON & POSCMD_EC );
-_FOSC( FCKSM_CSDCMD & POSCMD_XT & IOL1WAY_OFF);
-_FWDT( FWDTEN_OFF );
-_FPOR(PWMPIN_OFF & HPOL_OFF & LPOL_OFF & FPWRT_PWR128);
- */
-// DMA RAM space for ECAN messages (currently used only by bootloader)
-//unsigned int message_buffer[2][8] __attribute__((space(dma)));
-//unsigned int node_id;
-
-//_FOSCSEL(FNOSC_FRC);	
-//_FOSC(FCKSM_CSECMD & OSCIOFNC_OFF  & POSCMD_XT);	// Clock Switching is enabled and Fail Safe Clock Monitor is disabled
-//													// OSC2 Pin Function: OSC2 is Clock Output
-//													// Primary Oscillator Mode: XT Crystal
-//_FWDT(FWDTEN_OFF); 			            			// Watchdog Timer Enabled/disabled by user software
-//_FPOR(PWMPIN_OFF & HPOL_OFF & LPOL_OFF & FPWRT_PWR128);
-
+    _FOSCSEL(FNOSC_FRC);	
+    _FOSC(FCKSM_CSECMD & OSCIOFNC_OFF  & POSCMD_XT);	// Clock Switching is enabled and Fail Safe Clock Monitor is disabled
+                                                        // OSC2 Pin Function: OSC2 is Clock Output
+                                                        // Primary Oscillator Mode: XT Crystal
+    _FWDT(FWDTEN_OFF); 			            			// Watchdog Timer Enabled/disabled by user software
+    _FPOR(PWMPIN_OFF & HPOL_OFF & LPOL_OFF & FPWRT_PWR128);
+#endif
+ 
 int main(void) {
 
     /*** oscillator setup --------------------------------------------------
@@ -102,7 +78,7 @@ int main(void) {
 
     getConfigDataFromEEProm();
     prepareMotorCurrentConversion(); //takes EEPROM data and exctracts conversion factors
-
+    
     //default time base for external SPI driven timer interrupts
     //the SPI setup functions does not enable interrupt, this happens in the
     //motor control state machine
@@ -123,6 +99,6 @@ int main(void) {
     LED1=0;
 
     while (1){
-//        setMotorDrive(500);
+        
     } // end while(1)
 } // end main

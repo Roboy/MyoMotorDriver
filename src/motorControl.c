@@ -552,104 +552,6 @@ int getAnalogCurrentData()
     return 1;
 }
 
-
-void localPIDController(void)
-{
-
-    float deltaError;
-    float outPut;
-    //float sinusoidalTestOutput;
-    float actualVelocity;
-   // static float controlTime=0;
-    float motorCurrentMeasurement;
-
-    int encoder2Value;
-
-    long currentEncoderPosition;
-
-
-    // defined globallyfloat error, error_1,error_in
-
-    //disable interrupts to make sure we have consistent data
-    _NSTDIS=1;
-    GET_ENCODER (currentEncoderPosition); //to be transmitted on CAN bus
-    //disable interrupts to make sure we have consistent data
-    _NSTDIS=0;
-    motorCurrentMeasurement=(float) actualMotorCurrent * 805.664E-3;
-
-    actualVelocity=getVelocityInRadPerSecond();
-    actualValue=getPositionInRad();
-    if ((eePromData.ControlMode==2)||(eePromData.ControlMode==0)) //for velocity or open loop mode we differntiate
-    {
-        actualValue=actualVelocity;
-        //actualValue=motorCurrentMeasurement;
-    }
-
-
-    error=referenceValue-actualValue;   //control errro
-    error_int=error_int+error*getDeltaTime();  //simple integration
-
-
-    //limit the integration error
-
-    if (error_int>eePromData.integratorSaturation)
-    {
-        error_int=eePromData.integratorSaturation;
-    }
-
-    if (error_int<-eePromData.integratorSaturation)
-    {
-        error_int=-eePromData.integratorSaturation;
-    }
-
-    deltaError=(error-error_1)*getOneOverDeltaTime(); //error differntiation
-    error_1=error;
-
-
-
-    //pid controller
-    outPut=eePromData.PGain*error+eePromData.DGain*deltaError+eePromData.IGain*error_int;
-
-    INCREMENT_CAN_WATCHDOG;
-
-    if (canWatchDogCounter>=maxCanWatchDogTimeCounter)
-    {
-        if ((eePromData.ControlMode==2)||(eePromData.ControlMode==3)||(eePromData.ControlMode==0)) //velocity or current control
-        {
-            outPut=0; //do not drive if CAN connection is lost
-            canDummyData[0]=0xAAAA; canDummyData[1]=0xBBBB; canDummyData[2]=0xCCCC; canDummyData[3]=C1RXOVF1;
-            //CANTransmit(TEST_MESSAGE_01+eePromData.nodeID, canDummyData, 4);
-            //waitForCanMessageTransmitted();//wait until message is out
-        }
-    }
-
-
-    if (eePromData.ControlMode==0)  //this is open loop control
-    {
-        outPut=referenceValue;
-    }
-
-
-    //generate a test output signal
-    //controlTime=controlTime+0.0001008*eePromData.cycleTimeIn100usIncrements;
-    //sinusoidalTestOutput=sin(2*3.14*1*controlTime);
-    //sinusoidalTestOutput=sinusoidalTestOutput*eePromData.PGain*eePromData.IGain*eePromData.DGain;
-
-    //drive the motor
-    driveMotor(outPut);
-    //transmit actual value on the bus
-
-    //get encoder input two and transmit this
-    //TODO: This is  a hack for testing the Myorobotics toolkit!!!
-    GET_SPRING(encoder2Value);
-    CANTransmitActualControlValue( actualValue ,currentEncoderPosition /*sinusoidalTestOutput+actualValue*/);
-    //wait until transmission complete
-    waitForCanMessageTransmitted();
-    CANTransmitAdditionalInternalStates(actualMotorCurrent,encoder2Value,0,0 );
-
-
-
-}
 void brakeMotor()
 {
     setPWMDutyCycle(0);
@@ -682,13 +584,6 @@ void motorControlLoop() {
               brakeMotor();
               prepareMotorCurrentConversion();
               getAnalogCurrentData();
-            if (startUpMessageSent==0)//only send once
-            {
-                CANTransmitString(STRING_MESSAGE+eePromData.nodeID, welcomeString);
-
-                CANTransmit(WAKE_UP_MSG_BASE_ID+eePromData.nodeID, canSendData, 0);
-                startUpMessageSent=1;
-            }
 
 
             //  LED1=~LED1;
@@ -782,26 +677,7 @@ void motorControlLoop() {
 
             }
 
-            //now we distinguish between SPI driven control or local control
-
-            if (eePromData.ControlMode==0xFFFF) //spi control
-            {
-                //in this case we don't do anything
-            }
-            else //local control
-            {
-                RESET_WATCHDOG;//we reset the watchdog
-                //
-                getAnalogCurrentData();
-                localPIDController();
-            }
-
            // LED1=0;
         break;
-
-
     }
-
-
-
 }

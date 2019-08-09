@@ -60,9 +60,6 @@ typedef struct struct_SPICOMMUNICATIONSTREAM_CONTROL {
 } SPICOMMUNICATIONSTREAM_CONTROL;
 
 
-
-
-
 /*! \brief configures the SPI hardware and resets spi protocol
  */
 void SPI1Setup(void);
