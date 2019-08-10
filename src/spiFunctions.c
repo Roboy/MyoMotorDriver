@@ -110,6 +110,7 @@ void __attribute__((__interrupt__, auto_psv)) _SPI1Interrupt(void)
     if ((SPI1BUF & START_OF_FRAME_MASK) != 0 && frame_started==0){
         spiMessageCounter = 0;
         frame_started = 1;
+        SPI1BUF = 0xBEEF;
     }else{
         frame_started =0;
         if(spiMessageCounter<2){
@@ -126,16 +127,16 @@ void __attribute__((__interrupt__, auto_psv)) _SPI1Interrupt(void)
 
                 GET_ENCODER2(SPIFrame.springDisplacement);
 
-                SPIFrame.actualCurrent=0xDEAD;
+                SPIFrame.actualCurrent=getFilteredMotorCurrent();
                 SPIFrame.sensor=0xBEEF;
                 SPI1BUF = 0xBEEF;
 
-        //        if(SPIFrame.pwmRef>2000){
-        //            SPIFrame.pwmRef = 2000;
-        //        }
-        //        if(SPIFrame.pwmRef<-2000){
-        //            SPIFrame.pwmRef = -2000;
-        //        }
+                if(SPIFrame.pwmRef>4000){
+                    SPIFrame.pwmRef = 4000;
+                }
+                if(SPIFrame.pwmRef<-4000){
+                    SPIFrame.pwmRef = -4000;
+                }
                 setMotorDrive(SPIFrame.pwmRef);
                 LED1=0;
                 frame_started = 0;
