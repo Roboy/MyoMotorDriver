@@ -131,11 +131,11 @@ void __attribute__((__interrupt__, auto_psv)) _SPI1Interrupt(void)
                 SPIFrame.sensor=0xBEEF;
                 SPI1BUF = 0xBEEF;
 
-                if(SPIFrame.pwmRef>4000){
-                    SPIFrame.pwmRef = 4000;
+                if(SPIFrame.pwmRef>300){
+                    SPIFrame.pwmRef = 300;
                 }
-                if(SPIFrame.pwmRef<-4000){
-                    SPIFrame.pwmRef = -4000;
+                if(SPIFrame.pwmRef<-300){
+                    SPIFrame.pwmRef = -300;
                 }
                 setMotorDrive(SPIFrame.pwmRef);
                 LED1=0;

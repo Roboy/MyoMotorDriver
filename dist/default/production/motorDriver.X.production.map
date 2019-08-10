@@ -964,7 +964,7 @@ __FSS
 
 __FGS             0xf80004          0x2
  *(__FGS.sec*)
- __FGS.sec        0xf80004          0x2 /CW/_FGS ›ìT›ì__FGS.sec
+ __FGS.sec        0xf80004          0x2 /CW/_FGS À	TÀ	__FGS.sec
                   0xf80004                  __FGS.sec
 
 __FOSCSEL
@@ -2229,7 +2229,7 @@ LOAD /opt/microchip/xc16/v1.36/bin/bin/../../lib/libm-elf.a
 LOAD /opt/microchip/xc16/v1.36/bin/bin/../../lib/liblega-c-elf.a
 END GROUP
 OUTPUT(dist/default/production/motorDriver.X.production.elf elf32-pic30)
-LOAD /CW/_FGS ›ìT›ì__FGS.sec
+LOAD /CW/_FGS À	TÀ	__FGS.sec
 LOAD jump_table
 LOAD default_isr
 LOAD data_init
