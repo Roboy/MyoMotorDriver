@@ -106,41 +106,43 @@ void __attribute__((__interrupt__, auto_psv)) _SPI1Interrupt(void)
     //broadcast of a stream. It makes the communcation robust and avoids
     //situation where the protocol receiver waits for a word
     //This means we can always restart
-
-    if ((SPI1BUF & START_OF_FRAME_MASK) != 0){
-        spiMessageCounter = 1;
+    static int frame_started = 1;
+    if ((SPI1BUF & START_OF_FRAME_MASK) != 0 && frame_started==0){
+        spiMessageCounter = 0;
+        frame_started = 1;
     }else{
-        spiMessageCounter++;
-    }
-    if(spiMessageCounter<8){
-        LED1 = 1;
-        if(spiMessageCounter<3)
-            SPIFrame.dataStream[spiMessageCounter]= SPI1BUF;
-        SPI1BUF = SPIFrame.dataStream[spiMessageCounter+2];
-    }
-    if(spiMessageCounter==7){ // we update after everything was send obviously
-        //position
-        GET_ENCODER(SPIFrame.actualPosition);
+        frame_started =0;
+        if(spiMessageCounter<2){
+            SPIFrame.dataStream[spiMessageCounter] = SPI1BUF;
+        }else{
+            SPI1BUF = SPIFrame.dataStream[spiMessageCounter+1];
+            if(spiMessageCounter==9){ // we update after everything was send obviously
+                //position
+                GET_ENCODER(SPIFrame.actualPosition);
 
-        SPIFrame.actualVelocity=SPIFrame.actualPosition-oldEncoderValue;
-        //store old value
-        oldEncoderValue=SPIFrame.actualPosition;
+                SPIFrame.actualVelocity=SPIFrame.actualPosition-oldEncoderValue;
+                //store old value
+                oldEncoderValue=SPIFrame.actualPosition;
 
-        GET_ENCODER2(SPIFrame.springDisplacement);
-        
-        SPIFrame.actualCurrent=getFilteredMotorCurrentLong();
-        SPIFrame.sensor=0xBEEF;
-        SPI1BUF = 0xBEEF;
-        
-        if(SPIFrame.pwmRef>2000){
-            SPIFrame.pwmRef = 2000;
+                GET_ENCODER2(SPIFrame.springDisplacement);
+
+                SPIFrame.actualCurrent=0xDEAD;
+                SPIFrame.sensor=0xBEEF;
+                SPI1BUF = 0xBEEF;
+
+        //        if(SPIFrame.pwmRef>2000){
+        //            SPIFrame.pwmRef = 2000;
+        //        }
+        //        if(SPIFrame.pwmRef<-2000){
+        //            SPIFrame.pwmRef = -2000;
+        //        }
+                setMotorDrive(SPIFrame.pwmRef);
+                LED1=0;
+                frame_started = 0;
+            }
         }
-        if(SPIFrame.pwmRef<-2000){
-            SPIFrame.pwmRef = -2000;
-        }
-        setMotorDrive(SPIFrame.pwmRef);
-        LED1=0;
     }
+    spiMessageCounter++;
 }
 
 int getSPIControlFlags(unsigned int * controlFlags)
